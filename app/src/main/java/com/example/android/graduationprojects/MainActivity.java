@@ -1,6 +1,7 @@
 package com.example.android.graduationprojects;
 
 import android.app.ActionBar;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -40,6 +41,7 @@ import org.opencv.calib3d.Calib3d;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 pictureFile = File.createTempFile(fileName, ".jpg", storageDir);
                 CameraPicture=pictureFile.getAbsolutePath();
-                boolean result=surf(CameraPicture,DatabasePicture);
+                //boolean result=surf(CameraPicture,DatabasePicture);
                 Log.d("sssss:",CameraPicture);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -166,9 +168,19 @@ public class MainActivity extends AppCompatActivity {
             db.close();
 
         }
+
+        boolean result;
+
+        {
+            try {
+                result = surf(CameraPicture,DatabasePicture);
+                Log.d("res",String.valueOf(result));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
-
-
 
 
 
@@ -233,11 +245,22 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean surf(String cam, String db) throws IOException {
 
-
-        AssetManager assetManager = getAssets();
-        InputStream istr = assetManager.open("c1.jpg");
-        Bitmap bitmap = BitmapFactory.decodeStream(istr);
         img1 = new Mat();
+
+
+
+
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap bitmap = BitmapFactory.decodeFile(cam, options);
+
+        //FileInputStream stream=openFileInput(cam);
+
+//        AssetManager assetManager = getAssets();
+//        InputStream istr = assetManager.open("c1.jpg");
+        //Bitmap bitmap = BitmapFactory.decodeStream(cam, options);
+
         Utils.bitmapToMat(bitmap, img1);
         Imgproc.cvtColor(img1, img1, Imgproc.COLOR_RGB2GRAY);
         descriptors1 = new Mat();
@@ -246,9 +269,19 @@ public class MainActivity extends AppCompatActivity {
         descriptor.compute(img1, keypoints1, descriptors1);
 
         img2 = new Mat();
-        AssetManager assetManager2 = getAssets();
-        InputStream istr2 = assetManager2.open("c2.jpg");
-        Bitmap bitmap2 = BitmapFactory.decodeStream(istr2);
+
+//        BitmapFactory.Options options2 = new BitmapFactory.Options();
+//        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+//        Bitmap bitmap2 = BitmapFactory.decodeFile(db, options2);
+
+
+        BitmapFactory.Options options2 = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap bitmap2 = BitmapFactory.decodeFile(db, options2);
+
+
+//        AssetManager assetManager2 = getAssets();
+//        InputStream istr2 = assetManager2.open("c2.jpg");
         Utils.bitmapToMat(bitmap2, img2);
         Imgproc.resize(img2, img2, img1.size());
         Imgproc.cvtColor(img2, img2, Imgproc.COLOR_RGB2GRAY);
@@ -319,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bm = Bitmap.createBitmap(outputImg.cols(), outputImg.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(outputImg, bm);
         mImageView.setImageBitmap(bm);
-        if (better_matches.size() < (20 * matches.size()) / 100) {
+        if (better_matches.size() < (10 * matches.size()) / 100) {
             mTextView.setText("False");
             //return false;
         }
